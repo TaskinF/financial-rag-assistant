@@ -1,4 +1,4 @@
-from app.text_cleaner import clean_text
+from app.processing.text_cleaner import clean_text
 
 
 def test_clean_text_returns_empty_string_for_none_input():
