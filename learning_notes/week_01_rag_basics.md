@@ -75,3 +75,23 @@ High-quality text extraction is the foundation of a RAG system. If the extracted
 ### Why it matters
 Text cleaning directly affects chunking, embedding quality and retrieval accuracy. In financial documents, overly aggressive cleaning can remove critical information such as percentages, monetary values and dates.
 - I designed the text cleaning layer conservatively because financial RAG systems must preserve numerical and symbolic information. The goal was to reduce noise without damaging the semantic and quantitative content needed for reliable retrieval.
+
+
+## Day 4 - Text Chunking
+
+### What I implemented
+- Implemented a basic character-based text chunking utility.
+- Added `chunk_text(text, chunk_size, chunk_overlap)` for overlapping text chunks.
+- Added `chunk_pages(pages, chunk_size, chunk_overlap)` to preserve page-level metadata.
+- Generated deterministic chunk IDs using source file, page number and chunk index.
+- Added unit tests for parameter validation, overlap behavior and metadata preservation.
+
+### Key technical decisions
+- Started with character-based chunking because it is simple, transparent and easy to test.
+- Added chunk overlap to reduce context loss across chunk boundaries.
+- Preserved metadata such as `source_file`, `page_number` and `chunk_index` for future source-grounded answers.
+- Validated chunking parameters to avoid invalid configurations and infinite loop risks.
+
+### Why it matters
+Chunking quality directly affects retrieval quality in RAG systems. If chunks are too large, retrieval becomes noisy. If chunks are too small, the LLM may receive incomplete context. Overlap helps preserve meaning across chunk boundaries.
+- I implemented a transparent chunking layer before using framework abstractions. This helped me understand how chunk size, overlap and metadata preservation affect retrieval quality and source-grounded answer generation.
