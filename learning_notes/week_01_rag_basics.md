@@ -95,3 +95,25 @@ Text cleaning directly affects chunking, embedding quality and retrieval accurac
 ### Why it matters
 Chunking quality directly affects retrieval quality in RAG systems. If chunks are too large, retrieval becomes noisy. If chunks are too small, the LLM may receive incomplete context. Overlap helps preserve meaning across chunk boundaries.
 - I implemented a transparent chunking layer before using framework abstractions. This helped me understand how chunk size, overlap and metadata preservation affect retrieval quality and source-grounded answer generation.
+
+
+---
+
+## Day 5 - Mini Ingestion Pipeline
+
+### What I implemented
+- Added a mini ingestion pipeline for the Financial Document RAG Assistant.
+- Implemented `build_chunks_from_pdf(file_path, chunk_size, chunk_overlap)`.
+- Orchestrated PDF loading, conservative text cleaning and metadata-preserving chunking.
+- Preserved source metadata such as `source_file` and `page_number` throughout the pipeline.
+- Added integration-style tests using mocked PDF loading behavior.
+
+### Key technical decisions
+- Kept PDF loading, text cleaning and chunking as separate modules to preserve separation of concerns.
+- Added an ingestion orchestration layer instead of mixing preprocessing logic inside the FastAPI or RAG layer.
+- Used metadata-preserving transformations to support future source-grounded answers.
+- Used mocked PDF loading in tests to validate pipeline behavior without depending on real PDF files.
+
+### Why it matters
+The ingestion pipeline converts raw documents into retrieval-ready chunks. This is the foundation for embedding generation, vector database indexing and reliable RAG answers. If metadata is lost at this stage, source citation and traceability become difficult later.
+- I built a modular ingestion pipeline that transforms PDFs into clean, metadata-preserving chunks. I separated loading, cleaning and chunking responsibilities and added integration-style tests to verify that the pipeline preserves traceability from document to chunk.
