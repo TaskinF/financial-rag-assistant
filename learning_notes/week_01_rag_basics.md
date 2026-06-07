@@ -117,3 +117,26 @@ Chunking quality directly affects retrieval quality in RAG systems. If chunks ar
 ### Why it matters
 The ingestion pipeline converts raw documents into retrieval-ready chunks. This is the foundation for embedding generation, vector database indexing and reliable RAG answers. If metadata is lost at this stage, source citation and traceability become difficult later.
 - I built a modular ingestion pipeline that transforms PDFs into clean, metadata-preserving chunks. I separated loading, cleaning and chunking responsibilities and added integration-style tests to verify that the pipeline preserves traceability from document to chunk.
+
+
+---
+
+## Day 6 - BGE-M3 Embedding Interface with FlagEmbedding
+
+### What I implemented
+- Added a provider-independent embedding model interface.
+- Implemented `EmbeddingModel` with `embed_text` and `embed_documents` methods.
+- Added `BGEFlagEmbeddingModel` using `FlagEmbedding` and `BAAI/bge-m3`.
+- Configured BGE-M3 to return dense embeddings for the initial vector search pipeline.
+- Kept a deterministic `FakeEmbeddingModel` for fast and reliable unit tests.
+- Added a manual script to test real BGE-M3 embeddings locally.
+
+### Key technical decisions
+- Used `FlagEmbedding` instead of a generic sentence-transformers wrapper because BGE-M3 has native support for dense retrieval, sparse retrieval and ColBERT-style multi-vector interaction.
+- Started with dense embeddings only to keep the first vector search implementation simple.
+- Preserved a provider-independent interface so the project can later support Ollama, OpenAI or Azure OpenAI without changing the rest of the RAG pipeline.
+- Avoided loading the real BGE-M3 model in unit tests to keep tests fast and CI-friendly.
+
+### Why it matters
+Embedding is the bridge between text chunks and semantic search. Using BGE-M3 through its native FlagEmbedding interface gives the project a stronger foundation for multilingual financial document retrieval, while keeping the architecture extensible for future reranking and hybrid retrieval.
+- I implemented the embedding layer with BGE-M3 through FlagEmbedding instead of relying on a generic embedding wrapper. This gives access to dense, sparse and ColBERT-style representations in the future, while the initial MVP uses dense vectors for simple semantic retrieval.

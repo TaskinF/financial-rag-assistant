@@ -4,3 +4,4 @@ pytest
 pydantic
 python-dotenv
 PyMuPDF
+FlagEmbedding
