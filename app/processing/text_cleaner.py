@@ -1,7 +1,7 @@
 import re
 
 
-def clean_text(text: str) -> str:
+def clean_text(text: str | None) -> str:
     """
     Clean raw document text by normalizing whitespace while preserving
     financially meaningful characters such as numbers, symbols, and dates.
