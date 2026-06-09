@@ -140,3 +140,25 @@ The ingestion pipeline converts raw documents into retrieval-ready chunks. This 
 ### Why it matters
 Embedding is the bridge between text chunks and semantic search. Using BGE-M3 through its native FlagEmbedding interface gives the project a stronger foundation for multilingual financial document retrieval, while keeping the architecture extensible for future reranking and hybrid retrieval.
 - I implemented the embedding layer with BGE-M3 through FlagEmbedding instead of relying on a generic embedding wrapper. This gives access to dense, sparse and ColBERT-style representations in the future, while the initial MVP uses dense vectors for simple semantic retrieval.
+
+---
+
+## Day 7 - In-Memory Vector Store and Similarity Search
+
+### What I implemented
+- Added a simple in-memory vector store for semantic retrieval.
+- Implemented document indexing with metadata-preserving chunks and embeddings.
+- Added cosine similarity calculation for comparing query and document vectors.
+- Implemented `similarity_search(query, top_k)` to retrieve the most relevant chunks.
+- Added unit tests for cosine similarity, document indexing, retrieval behavior and metadata preservation.
+
+### Key technical decisions
+- Started with an in-memory vector store to understand the fundamentals of vector search before introducing FAISS or Chroma.
+- Used cosine similarity as the first retrieval scoring method.
+- Kept embeddings internal to the store and excluded them from search results.
+- Preserved chunk metadata such as `chunk_id`, `source_file`, `page_number` and `chunk_index` for future source-grounded answers.
+- Used `FakeEmbeddingModel` in tests to keep retrieval tests deterministic and independent from large model downloads.
+
+### Why it matters
+Retrieval is the core mechanism that connects user questions with relevant document chunks. Before the LLM generates an answer, the system must identify the most relevant context. A clean vector store abstraction makes it easier to later replace the in-memory implementation with FAISS, Chroma or another production vector database.
+- I implemented a simple in-memory vector store to understand and validate the retrieval flow end to end. It indexes metadata-preserving chunks, computes query embeddings, ranks documents with cosine similarity and returns top-k results without exposing raw embeddings.
