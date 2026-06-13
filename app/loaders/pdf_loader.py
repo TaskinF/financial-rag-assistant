@@ -38,7 +38,7 @@ def load_pdf_pages(file_path: str) -> list[dict]:
                 {
                     "page_number": page_number,
                     "text": text,
-                    "source_file": str(path),
+                    "source_file": path.name,
                 }
             )
 

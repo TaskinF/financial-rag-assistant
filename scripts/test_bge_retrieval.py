@@ -41,10 +41,34 @@ def parse_args() -> argparse.Namespace:
         help="Chunk overlap to use during ingestion.",
     )
     parser.add_argument(
+        "--start-page",
+        type=int,
+        default=None,
+        help="Only keep chunks with page_number >= start_page.",
+    )
+    parser.add_argument(
+        "--end-page",
+        type=int,
+        default=None,
+        help="Only keep chunks with page_number <= end_page.",
+    )
+    parser.add_argument(
+        "--max-pages",
+        type=int,
+        default=None,
+        help="Only keep chunks from the first N pages.",
+    )
+    parser.add_argument(
         "--max-chunks",
         type=int,
         default=None,
         help="If provided, only the first N chunks will be indexed.",
+    )
+    parser.add_argument(
+        "--preview-chars",
+        type=int,
+        default=500,
+        help="Number of characters to show in each result preview.",
     )
     parser.add_argument(
         "--use-fp16",
@@ -52,6 +76,41 @@ def parse_args() -> argparse.Namespace:
         help="Use fp16 for BGE-M3 model loading. Default is False for CPU safety.",
     )
     return parser.parse_args()
+
+
+def filter_chunks_by_page(
+    chunks: list[dict],
+    start_page: int | None = None,
+    end_page: int | None = None,
+    max_pages: int | None = None,
+) -> list[dict]:
+    filtered_chunks = chunks
+
+    if start_page is not None:
+        filtered_chunks = [
+            chunk
+            for chunk in filtered_chunks
+            if chunk.get("page_number") is not None
+            and chunk["page_number"] >= start_page
+        ]
+
+    if end_page is not None:
+        filtered_chunks = [
+            chunk
+            for chunk in filtered_chunks
+            if chunk.get("page_number") is not None
+            and chunk["page_number"] <= end_page
+        ]
+
+    if max_pages is not None:
+        filtered_chunks = [
+            chunk
+            for chunk in filtered_chunks
+            if chunk.get("page_number") is not None
+            and chunk["page_number"] <= max_pages
+        ]
+
+    return filtered_chunks
 
 
 def main() -> None:
@@ -71,10 +130,34 @@ def main() -> None:
     )
     ingestion_elapsed = time.perf_counter() - ingestion_start
 
+    total_chunks_before_filtering = len(chunks)
+
     print("PDF:", pdf_path.name)
-    print("Total chunks:", len(chunks))
+    print("Total chunks before page filtering:", total_chunks_before_filtering)
     print(f"Ingestion/chunk generation took {ingestion_elapsed:.2f} seconds.")
     print()
+
+    chunks = filter_chunks_by_page(
+        chunks,
+        start_page=args.start_page,
+        end_page=args.end_page,
+        max_pages=args.max_pages,
+    )
+
+    print("Chunks after page filtering:", len(chunks))
+
+    if args.start_page is not None or args.end_page is not None:
+        start_label = args.start_page if args.start_page is not None else "beginning"
+        end_label = args.end_page if args.end_page is not None else "end"
+        print(f"Using pages: {start_label}-{end_label}")
+    elif args.max_pages is not None:
+        print(f"Using pages: 1-{args.max_pages}")
+
+    print()
+
+    if not chunks:
+        print("No chunks left after page filtering.")
+        return
 
     if args.max_chunks is not None:
         chunks = chunks[:args.max_chunks]
@@ -108,15 +191,20 @@ def main() -> None:
     print(f"Retrieval took {retrieval_elapsed:.2f} seconds.")
     print()
 
-    for rank, result in enumerate(results, start=1):
-        preview_text = result["text"][:500]
+    if not results:
+        print("No retrieval results found.")
+        return
 
-        print(f"Rank {rank}")
-        print("score:", result["score"])
-        print("chunk_id:", result["chunk_id"])
-        print("source_file:", result["source_file"])
-        print("page_number:", result["page_number"])
-        print("text:", preview_text)
+    for rank, result in enumerate(results, start=1):
+        preview_text = " ".join(result["text"].split())[:args.preview_chars]
+
+        print("--------------------------------------------------")
+        print(f"Rank: {rank}")
+        print(f"Score: {result['score']:.4f}")
+        print(f"Chunk ID: {result['chunk_id']}")
+        print(f"Source File: {result['source_file']}")
+        print(f"Page Number: {result['page_number']}")
+        print(f"Text Preview: {preview_text}")
         print()
 
 
