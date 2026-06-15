@@ -4,6 +4,11 @@ from pathlib import Path
 
 from app.processing.ingestion import build_chunks_from_pdf
 from app.rag.retriever import VectorStoreRetriever
+from app.vectorstore.embedding_cache import (
+    build_embedding_cache_key,
+    load_embedding_cache,
+    save_embedding_cache,
+)
 from app.vectorstore.embeddings import BGEFlagEmbeddingModel
 from app.vectorstore.in_memory_store import InMemoryVectorStore
 
@@ -69,6 +74,17 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=500,
         help="Number of characters to show in each result preview.",
+    )
+    parser.add_argument(
+        "--cache-dir",
+        type=str,
+        default="artifacts/embedding_cache",
+        help="Directory for storing embedding cache files.",
+    )
+    parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Disable embedding cache usage.",
     )
     parser.add_argument(
         "--use-fp16",
@@ -164,6 +180,11 @@ def main() -> None:
         print(f"Using first {args.max_chunks} chunks for smoke test.")
         print()
 
+    cache_key = build_embedding_cache_key(
+        chunks=chunks,
+        model_name="BAAI/bge-m3",
+    )
+
     model_start = time.perf_counter()
     embedding_model = BGEFlagEmbeddingModel(use_fp16=args.use_fp16)
     model_elapsed = time.perf_counter() - model_start
@@ -174,7 +195,31 @@ def main() -> None:
 
     index_start = time.perf_counter()
     vector_store = InMemoryVectorStore(embedding_model=embedding_model)
-    vector_store.add_documents(chunks)
+
+    cached_documents = None
+    if not args.no_cache:
+        cached_documents = load_embedding_cache(args.cache_dir, cache_key)
+
+    if cached_documents is not None:
+        print(f"Embedding cache hit: {cache_key}")
+        vector_store.add_embedded_documents(cached_documents)
+    else:
+        if args.no_cache:
+            print("Embedding cache disabled.")
+        else:
+            print(f"Embedding cache miss: {cache_key}")
+
+        vector_store.add_documents(chunks)
+
+        if not args.no_cache:
+            embedded_documents = vector_store.get_documents()
+            cache_path = save_embedding_cache(
+                cache_dir=args.cache_dir,
+                cache_key=cache_key,
+                documents=embedded_documents,
+            )
+            print(f"Saved embedding cache to: {cache_path}")
+
     index_elapsed = time.perf_counter() - index_start
 
     print(f"Vector store indexing/embedding generation took {index_elapsed:.2f} seconds.")

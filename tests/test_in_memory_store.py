@@ -103,6 +103,126 @@ def test_add_documents_stores_valid_chunks_with_embeddings():
     assert "embedding" in store._documents[0]
 
 
+def test_add_embedded_documents_does_nothing_for_empty_list():
+    store = build_store()
+
+    store.add_embedded_documents([])
+
+    assert store._documents == []
+
+
+def test_add_embedded_documents_stores_valid_documents():
+    store = build_store()
+    documents = [
+        {
+            "chunk_id": "sample.pdf_p1_c0",
+            "text": "Revenue increased by 12.5%",
+            "source_file": "sample.pdf",
+            "page_number": 1,
+            "chunk_index": 0,
+            "embedding": [0.1, 0.2, 0.3],
+        }
+    ]
+
+    store.add_embedded_documents(documents)
+
+    assert len(store._documents) == 1
+    assert store._documents[0]["chunk_id"] == "sample.pdf_p1_c0"
+    assert store._documents[0]["text"] == "Revenue increased by 12.5%"
+    assert store._documents[0]["embedding"] == [0.1, 0.2, 0.3]
+
+
+def test_add_embedded_documents_raises_value_error_when_embedding_is_missing():
+    store = build_store()
+
+    with pytest.raises(ValueError):
+        store.add_embedded_documents(
+            [
+                {
+                    "chunk_id": "sample.pdf_p1_c0",
+                    "text": "Revenue increased by 12.5%",
+                    "source_file": "sample.pdf",
+                    "page_number": 1,
+                    "chunk_index": 0,
+                }
+            ]
+        )
+
+
+def test_add_embedded_documents_raises_value_error_for_empty_embedding():
+    store = build_store()
+
+    with pytest.raises(ValueError):
+        store.add_embedded_documents(
+            [
+                {
+                    "chunk_id": "sample.pdf_p1_c0",
+                    "text": "Revenue increased by 12.5%",
+                    "source_file": "sample.pdf",
+                    "page_number": 1,
+                    "chunk_index": 0,
+                    "embedding": [],
+                }
+            ]
+        )
+
+
+def test_add_embedded_documents_raises_value_error_when_text_is_missing():
+    store = build_store()
+
+    with pytest.raises(ValueError):
+        store.add_embedded_documents(
+            [
+                {
+                    "chunk_id": "sample.pdf_p1_c0",
+                    "source_file": "sample.pdf",
+                    "page_number": 1,
+                    "chunk_index": 0,
+                    "embedding": [0.1, 0.2, 0.3],
+                }
+            ]
+        )
+
+
+def test_add_embedded_documents_raises_value_error_for_empty_text():
+    store = build_store()
+
+    with pytest.raises(ValueError):
+        store.add_embedded_documents(
+            [
+                {
+                    "chunk_id": "sample.pdf_p1_c0",
+                    "text": "   ",
+                    "source_file": "sample.pdf",
+                    "page_number": 1,
+                    "chunk_index": 0,
+                    "embedding": [0.1, 0.2, 0.3],
+                }
+            ]
+        )
+
+
+def test_get_documents_returns_documents_with_embeddings():
+    store = build_store()
+    documents = [
+        {
+            "chunk_id": "sample.pdf_p1_c0",
+            "text": "Revenue increased by 12.5%",
+            "source_file": "sample.pdf",
+            "page_number": 1,
+            "chunk_index": 0,
+            "embedding": [0.1, 0.2, 0.3],
+        }
+    ]
+
+    store.add_embedded_documents(documents)
+    stored_documents = store.get_documents()
+
+    assert len(stored_documents) == 1
+    assert stored_documents[0]["chunk_id"] == "sample.pdf_p1_c0"
+    assert stored_documents[0]["embedding"] == [0.1, 0.2, 0.3]
+
+
 def test_similarity_search_returns_empty_list_when_store_is_empty():
     store = build_store()
 

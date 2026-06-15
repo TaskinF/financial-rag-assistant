@@ -49,6 +49,54 @@ class InMemoryVectorStore:
             stored_document["embedding"] = embedding
             self._documents.append(stored_document)
 
+    def add_embedded_documents(self, documents: list[dict]) -> None:
+        """
+        Add pre-embedded documents directly to the store.
+
+        Args:
+            documents: List of document dictionaries containing text, embedding,
+                and optional metadata fields.
+
+        Raises:
+            ValueError: If any document has missing or empty text, missing embedding,
+                empty embedding, or non-numeric embedding values.
+        """
+        if not documents:
+            return
+
+        for document in documents:
+            text = document.get("text")
+
+            if text is None or not str(text).strip():
+                raise ValueError("each document must contain a non-empty text field")
+
+            if "embedding" not in document:
+                raise ValueError("each document must contain an embedding field")
+
+            embedding = document["embedding"]
+
+            if not isinstance(embedding, list):
+                raise ValueError("embedding must be a list of numeric values")
+
+            if not embedding:
+                raise ValueError("embedding cannot be empty")
+
+            if not all(isinstance(value, (int, float)) for value in embedding):
+                raise ValueError("embedding must contain only numeric values")
+
+            stored_document = dict(document)
+            stored_document["text"] = str(text).strip()
+            self._documents.append(stored_document)
+
+    def get_documents(self) -> list[dict]:
+        """
+        Return a shallow copy of stored documents, including embeddings.
+
+        Returns:
+            A shallow-copied list of stored document dictionaries.
+        """
+        return [dict(document) for document in self._documents]
+
     def similarity_search(self, query: str, top_k: int = 3) -> list[dict]:
         """
         Search for the most similar stored chunks to the given query.
