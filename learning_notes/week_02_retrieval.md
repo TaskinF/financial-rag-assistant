@@ -60,3 +60,27 @@ Page-aware retrieval inspection helps avoid embedding and searching unnecessary 
 
 This also showed that a single full-document index may not always be the best design for financial RAG. A better long-term architecture may include separate retrieval modes such as summary retrieval, transaction-level retrieval and full-document retrieval.
 - I improved metadata hygiene and added page-aware retrieval inspection for a real financial RAG pipeline. On a 177-page KPC fund report, I observed that BGE-M3 could retrieve precise information such as management fee, but table-heavy PDF extraction created noisy chunks. This led to the design insight that financial RAG systems should support section-aware or page-aware retrieval, not only full-document semantic search.
+
+
+---
+
+## Day 10 - Embedding Cache for Retrieval
+
+### What I implemented
+- Added local embedding cache support for the manual BGE-M3 retrieval flow.
+- Created deterministic cache keys based on chunk content, metadata and embedding model name.
+- Added utility functions to save and load embedded documents from local pickle files.
+- Extended the in-memory vector store to support pre-computed embeddings.
+- Updated the retrieval test script to reuse cached embeddings when available.
+
+### Key technical decisions
+- Used chunk content and metadata to generate the cache key instead of relying only on file name.
+- Kept the cache local under `artifacts/embedding_cache`.
+- Ignored cache files in Git while keeping the directory structure with `.gitkeep`.
+- Cached document embeddings, not query embeddings.
+- Kept BGE-M3 model loading in the flow because query embedding still requires the model.
+- Added `--no-cache` to allow debugging without cache.
+
+### Why it matters
+Embedding generation is one of the slowest parts of the RAG pipeline, especially with a strong model like BGE-M3 running on CPU. Caching embeddings prevents repeated computation for the same document chunks and makes retrieval iteration much faster.
+- I added a local embedding cache to avoid recomputing BGE-M3 embeddings for the same financial document chunks. This made the retrieval workflow more practical and introduced a production-relevant concept: separating one-time indexing cost from repeated query-time retrieval.
