@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 
 from app.processing.ingestion import build_chunks_from_pdf
+from app.rag.context_builder import build_context, extract_sources
 from app.rag.retriever import VectorStoreRetriever
 from app.vectorstore.embedding_cache import (
     build_embedding_cache_key,
@@ -76,6 +77,12 @@ def parse_args() -> argparse.Namespace:
         help="Number of characters to show in each result preview.",
     )
     parser.add_argument(
+        "--context-max-chars",
+        type=int,
+        default=4000,
+        help="Maximum number of characters for the LLM-ready context preview.",
+    )
+    parser.add_argument(
         "--cache-dir",
         type=str,
         default="artifacts/embedding_cache",
@@ -85,6 +92,11 @@ def parse_args() -> argparse.Namespace:
         "--no-cache",
         action="store_true",
         help="Disable embedding cache usage.",
+    )
+    parser.add_argument(
+        "--show-context",
+        action="store_true",
+        help="Print LLM-ready context preview after retrieval.",
     )
     parser.add_argument(
         "--use-fp16",
@@ -250,6 +262,21 @@ def main() -> None:
         print(f"Source File: {result['source_file']}")
         print(f"Page Number: {result['page_number']}")
         print(f"Text Preview: {preview_text}")
+        print()
+
+    if args.show_context:
+        context = build_context(results, max_chars=args.context_max_chars)
+        sources = extract_sources(results)
+
+        print("==================================================")
+        print("LLM-ready context preview")
+        print("==================================================")
+        print(context)
+        print()
+
+        print("Sources")
+        for index, source in enumerate(sources, start=1):
+            print(f"{index}. {source}")
         print()
 
 
