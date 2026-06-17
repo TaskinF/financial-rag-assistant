@@ -84,3 +84,26 @@ This also showed that a single full-document index may not always be the best de
 ### Why it matters
 Embedding generation is one of the slowest parts of the RAG pipeline, especially with a strong model like BGE-M3 running on CPU. Caching embeddings prevents repeated computation for the same document chunks and makes retrieval iteration much faster.
 - I added a local embedding cache to avoid recomputing BGE-M3 embeddings for the same financial document chunks. This made the retrieval workflow more practical and introduced a production-relevant concept: separating one-time indexing cost from repeated query-time retrieval.
+
+
+---
+
+## Day 11 - RAG Context Builder
+
+### What I implemented
+- Added a context builder for formatting retrieved chunks into an LLM-ready context.
+- Added source extraction from retrieved chunks.
+- Normalized whitespace in retrieved texts before sending them to the future LLM layer.
+- Added configurable context length limiting.
+- Added context preview support to the manual BGE-M3 retrieval script.
+
+### Key technical decisions
+- Kept context building separate from retrieval and LLM generation.
+- Included source file, page number, score and chunk text in the context.
+- Added max character limiting to control prompt size.
+- Preserved source metadata for future citations.
+- Did not add an LLM call yet because the goal was to prepare clean, grounded context first.
+
+### Why it matters
+RAG quality depends not only on retrieval but also on how retrieved chunks are presented to the LLM. A clean context format improves answer grounding, makes citations easier and reduces the chance of the model using irrelevant or unstructured input.
+- I added a dedicated context builder that converts retrieved financial document chunks into a structured LLM-ready format with source metadata. This prepared the system for source-grounded answer generation while keeping retrieval, context formatting and LLM generation as separate components.
