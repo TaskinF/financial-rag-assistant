@@ -2,7 +2,9 @@ import argparse
 import time
 from pathlib import Path
 
+from app.llm.llm_client import FakeLLMClient
 from app.processing.ingestion import build_chunks_from_pdf
+from app.rag.answer_generator import generate_answer
 from app.rag.context_builder import build_context, extract_sources
 from app.rag.retriever import VectorStoreRetriever
 from app.vectorstore.embedding_cache import (
@@ -97,6 +99,11 @@ def parse_args() -> argparse.Namespace:
         "--show-context",
         action="store_true",
         help="Print LLM-ready context preview after retrieval.",
+    )
+    parser.add_argument(
+        "--show-answer",
+        action="store_true",
+        help="Run fake answer generation preview on retrieved results.",
     )
     parser.add_argument(
         "--use-fp16",
@@ -276,6 +283,25 @@ def main() -> None:
 
         print("Sources")
         for index, source in enumerate(sources, start=1):
+            print(f"{index}. {source}")
+        print()
+
+    if args.show_answer:
+        fake_llm = FakeLLMClient(response="Fake source-grounded answer preview")
+        answer_payload = generate_answer(
+            question=args.query,
+            retrieved_chunks=results,
+            llm_client=fake_llm,
+            max_context_chars=args.context_max_chars,
+        )
+
+        print("==================================================")
+        print("Answer generation preview")
+        print("==================================================")
+        print("Answer:", answer_payload["answer"])
+        print("Context length:", len(answer_payload["context"]))
+        print("Sources:")
+        for index, source in enumerate(answer_payload["sources"], start=1):
             print(f"{index}. {source}")
         print()
 
