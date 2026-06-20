@@ -107,3 +107,28 @@ Embedding generation is one of the slowest parts of the RAG pipeline, especially
 ### Why it matters
 RAG quality depends not only on retrieval but also on how retrieved chunks are presented to the LLM. A clean context format improves answer grounding, makes citations easier and reduces the chance of the model using irrelevant or unstructured input.
 - I added a dedicated context builder that converts retrieved financial document chunks into a structured LLM-ready format with source metadata. This prepared the system for source-grounded answer generation while keeping retrieval, context formatting and LLM generation as separate components.
+
+
+---
+
+## Day 12 - Source-Grounded Answer Generation Layer
+
+### What I implemented
+- Added a prompt builder for source-grounded RAG answers.
+- Added an LLM client abstraction.
+- Added a fake LLM client for testing without external API dependencies.
+- Added an answer generator that combines question, retrieved chunks, context, prompt and LLM response.
+- Preserved source metadata in the generated answer output.
+- Added answer generation preview support to the manual retrieval script.
+
+### Key technical decisions
+- Kept prompt building separate from context building and LLM execution.
+- Introduced an LLM provider interface to avoid coupling the RAG pipeline to a specific model provider.
+- Used a fake LLM client in tests to keep the system deterministic and independent from API keys.
+- Designed the prompt to force the model to use only the provided context.
+- Included an explicit fallback instruction for insufficient context.
+- Preserved source metadata for future citation support.
+
+### Why it matters
+RAG systems should not simply pass retrieved text into an LLM. The context must be formatted, the prompt must enforce grounding, and the answer output should preserve source information. This layer prepares the project for reliable source-grounded answer generation.
+- I added a source-grounded answer generation layer with a prompt builder, LLM client abstraction and deterministic fake LLM tests. This kept the RAG pipeline modular and provider-independent while preparing it for real LLM integration and citation-based answers.
