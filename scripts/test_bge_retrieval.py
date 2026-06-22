@@ -2,7 +2,10 @@ import argparse
 import time
 from pathlib import Path
 
+import requests
+
 from app.llm.llm_client import FakeLLMClient
+from app.llm.ollama_client import OllamaLLMClient
 from app.processing.ingestion import build_chunks_from_pdf
 from app.rag.answer_generator import generate_answer
 from app.rag.context_builder import build_context, extract_sources
@@ -103,7 +106,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--show-answer",
         action="store_true",
-        help="Run fake answer generation preview on retrieved results.",
+        help="Run answer generation preview on retrieved results.",
+    )
+    parser.add_argument(
+        "--llm-provider",
+        choices=["fake", "ollama"],
+        default="fake",
+        help="LLM provider to use for answer preview.",
+    )
+    parser.add_argument(
+        "--llm-model",
+        default="gemma3:4b",
+        help="LLM model name for answer preview.",
+    )
+    parser.add_argument(
+        "--ollama-base-url",
+        default="http://localhost:11434",
+        help="Base URL for the Ollama server.",
     )
     parser.add_argument(
         "--use-fp16",
@@ -287,22 +306,35 @@ def main() -> None:
         print()
 
     if args.show_answer:
-        fake_llm = FakeLLMClient(response="Fake source-grounded answer preview")
-        answer_payload = generate_answer(
-            question=args.query,
-            retrieved_chunks=results,
-            llm_client=fake_llm,
-            max_context_chars=args.context_max_chars,
-        )
+        if args.llm_provider == "fake":
+            llm_client = FakeLLMClient(response="Fake source-grounded answer preview")
+        else:
+            llm_client = OllamaLLMClient(
+                base_url=args.ollama_base_url,
+                model=args.llm_model,
+            )
+
+        try:
+            answer_payload = generate_answer(
+                question=args.query,
+                retrieved_chunks=results,
+                llm_client=llm_client,
+                max_context_chars=args.context_max_chars,
+            )
+        except requests.RequestException:
+            print("Ollama is not reachable. Make sure Ollama is running and the selected model is pulled.")
+            return
 
         print("==================================================")
         print("Answer generation preview")
         print("==================================================")
+        print("Provider:", args.llm_provider)
+        print("Model:", args.llm_model if args.llm_provider == "ollama" else "fake")
         print("Answer:", answer_payload["answer"])
-        print("Context length:", len(answer_payload["context"]))
         print("Sources:")
         for index, source in enumerate(answer_payload["sources"], start=1):
             print(f"{index}. {source}")
+        print("Context length:", len(answer_payload["context"]))
         print()
 
 
