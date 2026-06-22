@@ -132,3 +132,27 @@ RAG quality depends not only on retrieval but also on how retrieved chunks are p
 ### Why it matters
 RAG systems should not simply pass retrieved text into an LLM. The context must be formatted, the prompt must enforce grounding, and the answer output should preserve source information. This layer prepares the project for reliable source-grounded answer generation.
 - I added a source-grounded answer generation layer with a prompt builder, LLM client abstraction and deterministic fake LLM tests. This kept the RAG pipeline modular and provider-independent while preparing it for real LLM integration and citation-based answers.
+
+---
+
+## Day 13 - Local LLM Provider Integration with Ollama
+
+### What I implemented
+- Added an Ollama-based LLM client implementation.
+- Kept the existing LLM client abstraction provider-independent.
+- Preserved the fake LLM client for deterministic tests.
+- Added local LLM configuration through environment variables.
+- Updated the manual retrieval script to support fake and Ollama LLM providers.
+- Connected retrieved chunks, context building, prompt building and local LLM answer generation.
+
+### Key technical decisions
+- Used Ollama as the first real LLM provider because it can run locally without paid API calls.
+- Kept real LLM integration separate from the generic LLM interface.
+- Continued using the fake client in tests to avoid external dependencies.
+- Required explicit `--llm-provider ollama` usage before making real local LLM calls.
+- Preserved source metadata in the answer generation flow.
+- Used a source-grounded prompt to reduce hallucination risk.
+
+### Why it matters
+A RAG system becomes useful when retrieved context can be turned into a reliable answer. Adding a local Ollama provider makes the project closer to a real financial document assistant while keeping development cost-free and provider-independent.
+- I added local Ollama LLM integration behind a provider-independent client interface. This allowed the RAG pipeline to produce source-grounded answers from retrieved financial document chunks without relying on paid external APIs, while keeping tests deterministic through a fake LLM client.
