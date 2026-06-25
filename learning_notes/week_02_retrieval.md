@@ -156,3 +156,39 @@ RAG systems should not simply pass retrieved text into an LLM. The context must 
 ### Why it matters
 A RAG system becomes useful when retrieved context can be turned into a reliable answer. Adding a local Ollama provider makes the project closer to a real financial document assistant while keeping development cost-free and provider-independent.
 - I added local Ollama LLM integration behind a provider-independent client interface. This allowed the RAG pipeline to produce source-grounded answers from retrieved financial document chunks without relying on paid external APIs, while keeping tests deterministic through a fake LLM client.
+
+
+---
+
+## Day 14 - Local Ollama Answer Generation and Prompt Tightening
+
+### What I implemented
+
+* Tested real local answer generation with Ollama.
+* Connected retrieved financial document chunks to the answer generation flow.
+* Used the retrieved context to generate answers with a local LLM.
+* Improved the answer preview output by separating LLM answer and system-generated sources.
+* Tested financial questions such as fund management fee.
+* Reduced noisy context exposure during answer generation to avoid confusing the local LLM.
+
+### Key technical decisions
+
+* Used Ollama as the first real LLM provider because it can run locally without paid API calls.
+* Kept the fake LLM client for deterministic unit tests.
+* Kept source metadata handling on the Python side instead of relying on the LLM to generate sources.
+* Treated retrieval sources and LLM answer as separate outputs.
+* Prioritized more relevant retrieved chunks for answer generation.
+* Used system-generated source metadata to keep citations reliable.
+
+### Practical observation
+
+The retrieval layer correctly found the relevant chunk for the query "Fonun yönetim ücreti nedir?". The retrieved source contained the correct management fee information from page 3.
+
+However, initial local LLM outputs showed that even when retrieval is correct, the model can still select the wrong value if too many noisy or table-heavy chunks are included in the context. After reducing the answer context to the most relevant chunk, Ollama generated the correct management fee value: 7.125.856,54.
+
+This showed that financial RAG quality depends not only on retrieval accuracy, but also on how much context is passed to the LLM and how clearly that context is formatted.
+
+### Why it matters
+
+Financial PDFs often contain many similar numeric values, percentages and table rows. If the LLM receives too much noisy context, it may choose the wrong number even when the correct chunk is retrieved. For reliable financial question answering, the system should pass focused context to the LLM and manage source metadata outside the model.
+- I tested local Ollama-based answer generation on a real financial fund report. The retrieval layer correctly found the relevant page and chunk, but early LLM outputs showed that noisy context could still lead to incorrect numeric answers. I improved the flow by separating system-managed sources from LLM-generated answers and using more focused context for answer generation. This made the local RAG assistant more reliable for financial document QA.
