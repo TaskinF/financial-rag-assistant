@@ -30,18 +30,21 @@ def build_context(retrieved_chunks: list[dict], max_chars: int = 4000) -> str:
     for index, chunk in enumerate(retrieved_chunks, start=1):
         source_file = chunk.get("source_file", "unknown_source")
         page_number = chunk.get("page_number")
+        chunk_id = chunk.get("chunk_id")
         text = _normalize_text(str(chunk.get("text", "")))
 
         lines = [
             f"[Source {index}]",
             f"source_file: {source_file}",
             f"page_number: {page_number}",
+            f"chunk_id: {chunk_id}",
         ]
 
         if "score" in chunk and chunk["score"] is not None:
             lines.append(f"score: {chunk['score']:.4f}")
 
-        lines.append(f"text: {text}")
+        lines.append("content:")
+        lines.append(text)
         sections.append("\n".join(lines))
 
     context = "\n\n".join(sections)

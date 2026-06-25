@@ -28,8 +28,9 @@ def test_build_context_includes_expected_fields_for_single_chunk():
     assert "[Source 1]" in context
     assert "source_file: sample.pdf" in context
     assert "page_number: 1" in context
+    assert "chunk_id: sample.pdf_p1_c0" in context
     assert "score: 0.9123" in context
-    assert "text: Revenue increased by 12.5%" in context
+    assert "content:\nRevenue increased by 12.5%" in context
 
 
 def test_build_context_preserves_source_order_for_multiple_chunks():
@@ -68,7 +69,7 @@ def test_build_context_normalizes_whitespace_in_text():
 
     context = build_context(retrieved_chunks)
 
-    assert "text: Revenue increased by 12.5% in Q1" in context
+    assert "content:\nRevenue increased by 12.5% in Q1" in context
 
 
 def test_build_context_truncates_when_max_chars_is_small():

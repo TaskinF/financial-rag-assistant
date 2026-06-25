@@ -30,7 +30,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--query",
-        default="Fonun portföy dağılımı nasıldır?",
+        default="Fonun portfoy dagilimi nasildir?",
         help="Query to run against the indexed chunks.",
     )
     parser.add_argument(
@@ -322,19 +322,48 @@ def main() -> None:
                 max_context_chars=args.context_max_chars,
             )
         except requests.RequestException:
-            print("Ollama is not reachable. Make sure Ollama is running and the selected model is pulled.")
+            print(
+                "Ollama is not reachable. Make sure Ollama is running and the selected model is pulled."
+            )
             return
 
-        print("==================================================")
         print("Answer generation preview")
-        print("==================================================")
-        print("Provider:", args.llm_provider)
-        print("Model:", args.llm_model if args.llm_provider == "ollama" else "fake")
-        print("Answer:", answer_payload["answer"])
-        print("Sources:")
-        for index, source in enumerate(answer_payload["sources"], start=1):
-            print(f"{index}. {source}")
-        print("Context length:", len(answer_payload["context"]))
+        print(f"Provider: {args.llm_provider}")
+        print(f"Model: {args.llm_model if args.llm_provider == 'ollama' else 'fake'}")
+        print()
+        print("Answer:")
+        print(answer_payload["answer"])
+        print()
+        print("System Sources:")
+
+        seen_sources = set()
+        for source in answer_payload["sources"]:
+            source_key = (
+                source.get("source_file"),
+                source.get("page_number"),
+                source.get("chunk_id"),
+            )
+            if source_key in seen_sources:
+                continue
+
+            seen_sources.add(source_key)
+
+            source_file = source.get("source_file")
+            page_number = source.get("page_number")
+            chunk_id = source.get("chunk_id")
+            score = source.get("score")
+
+            if score is not None:
+                print(
+                    f"- {source_file}, page {page_number}, "
+                    f"chunk_id={chunk_id}, score={score:.4f}"
+                )
+            else:
+                print(
+                    f"- {source_file}, page {page_number}, "
+                    f"chunk_id={chunk_id}"
+                )
+
         print()
 
 
