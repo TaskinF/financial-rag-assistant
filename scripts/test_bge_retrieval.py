@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import time
 from pathlib import Path
 
@@ -9,6 +9,7 @@ from app.llm.ollama_client import OllamaLLMClient
 from app.processing.ingestion import build_chunks_from_pdf
 from app.rag.answer_generator import generate_answer
 from app.rag.context_builder import build_context, extract_sources
+from app.rag.matched_lines import extract_matched_lines
 from app.rag.retriever import VectorStoreRetriever
 from app.vectorstore.embedding_cache import (
     build_embedding_cache_key,
@@ -104,6 +105,17 @@ def parse_args() -> argparse.Namespace:
         help="Print LLM-ready context preview after retrieval.",
     )
     parser.add_argument(
+        "--show-matched-lines",
+        action="store_true",
+        help="Print matched financial lines after retrieval.",
+    )
+    parser.add_argument(
+        "--matched-lines-max",
+        type=int,
+        default=5,
+        help="Maximum number of matched financial lines to show.",
+    )
+    parser.add_argument(
         "--show-answer",
         action="store_true",
         help="Run answer generation preview on retrieved results.",
@@ -165,6 +177,20 @@ def filter_chunks_by_page(
         ]
 
     return filtered_chunks
+
+
+def print_matched_lines(matched_lines: list[dict]) -> None:
+    print("Matched financial lines:")
+    for index, item in enumerate(matched_lines, start=1):
+        print(f"{index}. {item['line']}")
+        print(
+            "   "
+            f"source={item['source_file']}, "
+            f"page={item['page_number']}, "
+            f"chunk_id={item['chunk_id']}, "
+            f"match_score={item['match_score']:.4f}"
+        )
+    print()
 
 
 def main() -> None:
@@ -278,6 +304,12 @@ def main() -> None:
         print("No retrieval results found.")
         return
 
+    matched_lines = extract_matched_lines(
+        args.query,
+        results,
+        max_lines=args.matched_lines_max,
+    )
+
     for rank, result in enumerate(results, start=1):
         preview_text = " ".join(result["text"].split())[:args.preview_chars]
 
@@ -289,6 +321,9 @@ def main() -> None:
         print(f"Page Number: {result['page_number']}")
         print(f"Text Preview: {preview_text}")
         print()
+
+    if args.show_matched_lines:
+        print_matched_lines(matched_lines)
 
     if args.show_context:
         context = build_context(results, max_chars=args.context_max_chars)
@@ -306,6 +341,9 @@ def main() -> None:
         print()
 
     if args.show_answer:
+        if matched_lines:
+            print_matched_lines(matched_lines)
+
         if args.llm_provider == "fake":
             llm_client = FakeLLMClient(response="Fake source-grounded answer preview")
         else:
