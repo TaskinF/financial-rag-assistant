@@ -1,0 +1,26 @@
+﻿[
+  {
+    "id": "kpc_management_fee",
+    "question": "Fonun yönetim ücreti nedir?",
+    "expected_page": 3,
+    "expected_keywords": ["Fon Yönetim Ücreti", "7.125.856,54", "0,1836"]
+  },
+  {
+    "id": "kpc_portfolio_value",
+    "question": "Fonun portföy değeri nedir?",
+    "expected_page": 3,
+    "expected_keywords": ["FON PORTFÖY DEĞERİ", "4.000.246.922,09"]
+  },
+  {
+    "id": "kpc_total_value",
+    "question": "Fonun toplam değeri nedir?",
+    "expected_page": 3,
+    "expected_keywords": ["FON TOPLAM DEĞERİ", "3.881.770.473,07"]
+  },
+  {
+    "id": "kpc_fund_name",
+    "question": "Fonun adı nedir?",
+    "expected_page": 1,
+    "expected_keywords": ["KPC-KATILIM HİSSE SENEDİ", "HİSSE YOĞUN FON"]
+  }
+]
