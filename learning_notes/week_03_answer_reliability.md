@@ -41,3 +41,21 @@ Financial PDFs contain many similar numbers. Passing too much context can confus
 RAG quality depends on retrieving the right context before generation. Retrieval metrics make the system measurable instead of relying only on manual tests.
 
 - I added retrieval evaluation with standard ranking metrics such as Precision@K, Recall@K, MRR and NDCG, making the financial RAG pipeline objectively measurable.
+
+
+## Day 17 - FastAPI Ask Endpoint
+
+### What I implemented
+- Added FastAPI request and response schemas.
+- Added a RAG service layer for question answering.
+- Added `/health` and `/ask` endpoints.
+- Tested the API with Ollama.
+
+### Key technical decisions
+- Kept API logic separate from RAG orchestration.
+- Used focused answer context with `answer_top_k`.
+- Returned answer, sources and retrieval metadata from the API.
+
+### Why it matters
+The project moved from script-based testing to an API-based RAG assistant. This makes the system easier to test, demo and extend.
+- I exposed the financial RAG pipeline through a FastAPI `/ask` endpoint and returned source-grounded answers with document metadata.
