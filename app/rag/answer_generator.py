@@ -1,4 +1,5 @@
 from app.llm.llm_client import LLMClient
+from app.rag.answer_postprocessor import clean_answer
 from app.rag.context_builder import build_context, extract_sources
 from app.rag.prompt_builder import build_rag_prompt
 
@@ -25,7 +26,8 @@ def generate_answer(
     context = build_context(retrieved_chunks, max_chars=max_context_chars)
     sources = extract_sources(retrieved_chunks)
     prompt = build_rag_prompt(normalized_question, context)
-    answer = llm_client.generate(prompt)
+    raw_answer = llm_client.generate(prompt)
+    answer = clean_answer(raw_answer)
 
     return {
         "question": normalized_question,
