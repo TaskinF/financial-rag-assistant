@@ -59,3 +59,20 @@ RAG quality depends on retrieving the right context before generation. Retrieval
 ### Why it matters
 The project moved from script-based testing to an API-based RAG assistant. This makes the system easier to test, demo and extend.
 - I exposed the financial RAG pipeline through a FastAPI `/ask` endpoint and returned source-grounded answers with document metadata.
+
+
+## Day 18 - API Polish and CLI Demo
+
+### What I implemented
+- Added answer cleanup for LLM outputs.
+- Added a CLI script for asking questions over financial PDFs.
+- Updated README usage examples.
+
+### Key technical decisions
+- Cleaned LLM formatting artifacts before returning API responses.
+- Reused the existing RAG service in the CLI.
+- Kept API and CLI outputs consistent.
+
+### Why it matters
+The project is now easier to demo from both API and terminal.
+- I polished the financial RAG assistant by cleaning model outputs and adding a CLI demo on top of the FastAPI-based RAG service.
