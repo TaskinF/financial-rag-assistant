@@ -90,3 +90,22 @@ The project is now easier to demo from both API and terminal.
 
 ### Why it matters
 A strong project needs both working code and a clear explanation.
+
+
+## Day 20 - Persistent Vector Store with ChromaDB
+
+### What I implemented
+- Added ChromaDB as a persistent vector store.
+- Created a ChromaVectorStore wrapper.
+- Stored chunk text, embeddings and metadata in a persistent collection.
+- Added vector store selection to the retrieval script.
+
+### Key technical decisions
+- Kept BGE-M3 as the embedding model.
+- Passed embeddings directly to Chroma instead of using Chroma's default embedding function.
+- Used upsert to avoid duplicate chunks.
+- Preserved source metadata for citation support.
+
+### Why it matters
+The project moved from in-memory retrieval to persistent vector storage. This makes repeated document querying faster and prepares the system for multi-document support.
+- I integrated ChromaDB as a persistent vector database and kept the embedding/retrieval pipeline provider-independent.
