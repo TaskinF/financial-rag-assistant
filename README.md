@@ -1,203 +1,94 @@
 # Financial Document RAG Assistant
 
-A modular Retrieval-Augmented Generation (RAG) project for financial PDF documents.
+Local RAG assistant built for financial PDF documents. The project includes BGE-M3 retrieval, local Ollama-based answer generation, a FastAPI API, a CLI demo, and retrieval evaluation utilities.
 
-The project processes financial reports, extracts and chunks text, generates embeddings with BGE-M3, retrieves relevant document sections, and prepares source-grounded answers with citation-ready metadata.
+## Key Features
 
-The goal is to build a practical financial document assistant, not just a simple RAG demo.
+- PDF ingestion with page-level metadata
+- Conservative financial text cleaning
+- BGE-M3 dense retrieval
+- Embedding cache
+- Focused answer context
+- Local Ollama LLM support
+- FastAPI `/ask` endpoint
+- CLI demo
+- Retrieval evaluation with Precision@K, Recall@K, MRR, NDCG
 
----
-
-## Features
-
-* PDF text extraction with page-level metadata
-* Conservative text cleaning for financial documents
-* Metadata-preserving text chunking
-* BGE-M3 embedding support via FlagEmbedding
-* In-memory vector store with cosine similarity search
-* Retriever abstraction
-* Page-aware retrieval for large financial PDFs
-* Embedding cache for faster repeated retrieval tests
-* LLM-ready context builder
-* Source extraction for citation support
-* Prompt and answer generation layer with fake LLM client for testing
-* Unit tests with pytest
-
----
-
-## Project Structure
-
-```text
-financial-rag-assistant/
-├── app/
-│   ├── loaders/          # PDF loading
-│   ├── processing/       # Cleaning, chunking, ingestion
-│   ├── vectorstore/      # Embeddings, vector store, cache
-│   ├── rag/              # Retriever, context, prompt, answer generation
-│   ├── llm/              # LLM client abstraction
-│   ├── config.py
-│   └── main.py
-│
-├── data/raw/             # Local PDF files
-├── artifacts/            # Local generated artifacts
-├── scripts/              # Manual test scripts
-├── tests/                # Unit tests
-├── learning-notes/       # Development notes
-├── README.md
-├── requirements.txt
-└── .env.example
-```
-
----
-
-## RAG Pipeline
+## Architecture
 
 ```text
 PDF
-→ Text Extraction
-→ Cleaning
-→ Chunking
-→ Embeddings
-→ Vector Search
-→ Retrieval
-→ Context Building
-→ Prompt Building
-→ Answer Generation
+-> Text Extraction
+-> Cleaning & Chunking
+-> BGE-M3 Embeddings
+-> Vector Search
+-> Focused Context
+-> Ollama LLM
+-> Answer + Sources
 ```
 
----
-
 ## Installation
-
-Create a virtual environment:
 
 ```bash
 python -m venv venv
 ```
 
-Activate it on Windows:
-
-```powershell
-.\venv\Scripts\activate
-```
-
-Install dependencies:
-
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-## API Usage
-
-Run the FastAPI app:
+## Run API
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Open:
+Swagger UI:
 
 ```text
-http://127.0.0.1:8000
+http://127.0.0.1:8000/docs
 ```
 
----
-
-## Run Tests
+## CLI Usage
 
 ```bash
-pytest
+python -m scripts.ask_pdf --question "Fonun yonetim ucreti nedir?" --llm-provider ollama --llm-model gemma3:4b
 ```
 
----
+## Evaluation
 
-## Manual Retrieval Test
+```bash
+python -m scripts.evaluate_rag --pdf-path data/raw/KPC_2026.05.pdf --eval-path eval/rag_eval_questions.json --start-page 1 --end-page 3 --top-k 3 --use-cache
+```
 
-Place a financial PDF under:
+Example result:
 
 ```text
-data/raw/
+Pass rate: 100.00%
+Average Precision@3: 0.7500
+Average Recall@3: 1.0000
+Average MRR@3: 1.0000
+Average NDCG@3: 0.9599
 ```
 
-Example:
+## Example Output
 
 ```text
-data/raw/KPC_2026.05.pdf
+Question: Fonun yonetim ucreti nedir?
+Answer: Fonun yonetim ucreti 7.125.856,54 TL'dir.
+Source: KPC_2026.05.pdf, page 3
 ```
-
-Run a basic retrieval test:
-
-```bash
-python -m scripts.test_bge_retrieval --pdf-path data/raw/KPC_2026.05.pdf --query "Fonun yönetim ücreti nedir?"
-```
-
-Run with page filtering:
-
-```bash
-python -m scripts.test_bge_retrieval --pdf-path data/raw/KPC_2026.05.pdf --start-page 1 --end-page 3 --query "Fonun yönetim ücreti nedir?"
-```
-
-Show LLM-ready context:
-
-```bash
-python -m scripts.test_bge_retrieval --pdf-path data/raw/KPC_2026.05.pdf --start-page 1 --end-page 3 --query "Fonun yönetim ücreti nedir?" --show-context
-```
-
-Show fake answer generation preview:
-
-```bash
-python -m scripts.test_bge_retrieval --pdf-path data/raw/KPC_2026.05.pdf --start-page 1 --end-page 3 --query "Fonun yönetim ücreti nedir?" --show-answer
-```
-
----
-
-## Example Observation
-
-In a real 177-page fund report, the system retrieved the relevant chunk for:
-
-```text
-Fonun yönetim ücreti nedir?
-```
-
-The retrieved chunk contained:
-
-```text
-Fon Yönetim Ücreti 7.125.856,54 0,1836 %
-```
-
-This showed that BGE-M3 can retrieve precise financial information, while also revealing that table-heavy financial PDFs require careful parsing, chunking and metadata handling.
-
----
 
 ## Current Limitations
 
-* PDF table extraction can be noisy
-* In-memory vector store is for local development only
-* Real LLM provider integration is not finalized yet
-* Automated retrieval evaluation is not implemented yet
-* UI is not implemented yet
+- PDF table extraction can be noisy
+- In-memory vector store is for local development
+- Evaluation set is small
+- Not financial advice
 
----
+## Next Steps
 
-## Roadmap
-
-* Add real LLM provider support
-* Add citation-based answer generation
-* Add retrieval evaluation dataset
-* Add persistent FAISS or Chroma vector store
-* Improve table-heavy PDF parsing
-* Add FastAPI `/ingest` and `/ask` endpoints
-* Add simple UI
-* Add Docker support
-
----
-
-## Learning Notes
-
-Development notes and implementation decisions are tracked under:
-
-```text
-learning-notes/
-```
+- Larger evaluation set
+- Persistent vector store
+- Better table parsing
+- Agentic financial assistant
