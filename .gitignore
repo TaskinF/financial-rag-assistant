@@ -4,5 +4,8 @@ __pycache__/
 .env
 *.pyc
 data/raw/*.pdf
-artifacts/embedding_cache/*
+artifacts/embedding_cache/**
 !artifacts/embedding_cache/.gitkeep
+artifacts/chroma/**
+!artifacts/chroma/.gitkeep
+artifacts/pytest_tmp/

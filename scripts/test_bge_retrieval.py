@@ -16,6 +16,7 @@ from app.vectorstore.embedding_cache import (
     load_embedding_cache,
     save_embedding_cache,
 )
+from app.vectorstore.chroma_store import ChromaVectorStore
 from app.vectorstore.embeddings import BGEFlagEmbeddingModel
 from app.vectorstore.in_memory_store import InMemoryVectorStore
 
@@ -98,6 +99,22 @@ def parse_args() -> argparse.Namespace:
         "--no-cache",
         action="store_true",
         help="Disable embedding cache usage.",
+    )
+    parser.add_argument(
+        "--vector-store",
+        choices=["memory", "chroma"],
+        default="memory",
+        help="Vector store backend to use.",
+    )
+    parser.add_argument(
+        "--chroma-dir",
+        default="artifacts/chroma",
+        help="Persistent directory for ChromaDB.",
+    )
+    parser.add_argument(
+        "--chroma-collection",
+        default="financial_documents",
+        help="ChromaDB collection name.",
     )
     parser.add_argument(
         "--show-context",
@@ -258,35 +275,54 @@ def main() -> None:
     print("Indexing chunks with BGE-M3 embeddings. This may take a while on CPU...")
 
     index_start = time.perf_counter()
-    vector_store = InMemoryVectorStore(embedding_model=embedding_model)
+    print(f"Vector store: {args.vector_store}")
 
-    cached_documents = None
-    if not args.no_cache:
-        cached_documents = load_embedding_cache(args.cache_dir, cache_key)
+    if args.vector_store == "memory":
+        vector_store = InMemoryVectorStore(embedding_model=embedding_model)
 
-    if cached_documents is not None:
-        print(f"Embedding cache hit: {cache_key}")
-        vector_store.add_embedded_documents(cached_documents)
-    else:
-        if args.no_cache:
-            print("Embedding cache disabled.")
+        cached_documents = None
+        if not args.no_cache:
+            cached_documents = load_embedding_cache(args.cache_dir, cache_key)
+
+        if cached_documents is not None:
+            print(f"Embedding cache hit: {cache_key}")
+            vector_store.add_embedded_documents(cached_documents)
         else:
-            print(f"Embedding cache miss: {cache_key}")
+            if args.no_cache:
+                print("Embedding cache disabled.")
+            else:
+                print(f"Embedding cache miss: {cache_key}")
+
+            vector_store.add_documents(chunks)
+
+            if not args.no_cache:
+                embedded_documents = vector_store.get_documents()
+                cache_path = save_embedding_cache(
+                    cache_dir=args.cache_dir,
+                    cache_key=cache_key,
+                    documents=embedded_documents,
+                )
+                print(f"Saved embedding cache to: {cache_path}")
+    else:
+        vector_store = ChromaVectorStore(
+            embedding_model=embedding_model,
+            persist_dir=args.chroma_dir,
+            collection_name=args.chroma_collection,
+        )
+
+        existing_count = vector_store.count()
+        if existing_count > 0:
+            print(
+                f"Chroma collection already has records: {existing_count}"
+            )
 
         vector_store.add_documents(chunks)
-
-        if not args.no_cache:
-            embedded_documents = vector_store.get_documents()
-            cache_path = save_embedding_cache(
-                cache_dir=args.cache_dir,
-                cache_key=cache_key,
-                documents=embedded_documents,
-            )
-            print(f"Saved embedding cache to: {cache_path}")
 
     index_elapsed = time.perf_counter() - index_start
 
     print(f"Vector store indexing/embedding generation took {index_elapsed:.2f} seconds.")
+    if args.vector_store == "chroma":
+        print(f"Chroma collection count: {vector_store.count()}")
     print()
 
     retriever = VectorStoreRetriever(vector_store=vector_store)
