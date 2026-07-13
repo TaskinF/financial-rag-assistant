@@ -76,3 +76,17 @@ The project moved from script-based testing to an API-based RAG assistant. This 
 ### Why it matters
 The project is now easier to demo from both API and terminal.
 - I polished the financial RAG assistant by cleaning model outputs and adding a CLI demo on top of the FastAPI-based RAG service.
+
+## Day 19 - Final Documentation
+
+### What I implemented
+- Polished the README for GitHub usage.
+- Added a final project checklist.
+
+### Key technical decisions
+- Focused on making the project easy to explain and demo.
+- Documented architecture, evaluation results and limitations.
+- Kept the final documentation concise.
+
+### Why it matters
+A strong project needs both working code and a clear explanation.
