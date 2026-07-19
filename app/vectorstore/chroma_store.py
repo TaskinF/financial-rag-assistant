@@ -117,13 +117,19 @@ class ChromaVectorStore:
             metadatas=metadatas,
         )
 
-    def similarity_search(self, query: str, top_k: int = 3) -> list[dict]:
+    def similarity_search(
+        self,
+        query: str,
+        top_k: int = 3,
+        metadata_filter: dict | None = None,
+    ) -> list[dict]:
         """
         Search the Chroma collection for the most similar chunks.
 
         Args:
             query: Query text.
             top_k: Number of top results to return.
+            metadata_filter: Optional metadata filter passed to Chroma as `where`.
 
         Returns:
             Retrieved chunk dictionaries with metadata and similarity score.
@@ -141,11 +147,16 @@ class ChromaVectorStore:
             return []
 
         query_embedding = self.embedding_model.embed_text(query.strip())
-        results = self.collection.query(
-            query_embeddings=[query_embedding],
-            n_results=top_k,
-            include=["documents", "metadatas", "distances"],
-        )
+        query_kwargs = {
+            "query_embeddings": [query_embedding],
+            "n_results": top_k,
+            "include": ["documents", "metadatas", "distances"],
+        }
+
+        if metadata_filter is not None:
+            query_kwargs["where"] = metadata_filter
+
+        results = self.collection.query(**query_kwargs)
 
         documents = results.get("documents", [[]])[0]
         metadatas = results.get("metadatas", [[]])[0]
@@ -163,6 +174,7 @@ class ChromaVectorStore:
             formatted_results.append(
                 {
                     "text": document,
+                    "document_id": metadata.get("document_id") or None,
                     "source_file": metadata.get("source_file") or None,
                     "page_number": None if page_number == -1 else page_number,
                     "chunk_id": metadata.get("chunk_id"),
@@ -223,6 +235,11 @@ class ChromaVectorStore:
             "chunk_id": chunk_id,
             "chunk_index": int(chunk_index) if chunk_index is not None else -1,
         }
+
+        document_id = document.get("document_id")
+        if document_id is not None and str(document_id).strip():
+            metadata["document_id"] = str(document_id).strip()
+
         return metadata
 
     def _validate_text(self, text: str | None, error_message: str) -> str:
