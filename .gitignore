@@ -4,6 +4,9 @@ __pycache__/
 .env
 *.pyc
 data/raw/*.pdf
+data/documents/**
+!data/documents/.gitkeep
+artifacts/document_registry.json
 artifacts/embedding_cache/**
 !artifacts/embedding_cache/.gitkeep
 artifacts/chroma/**
