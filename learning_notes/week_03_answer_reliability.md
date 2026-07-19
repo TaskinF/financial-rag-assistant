@@ -109,3 +109,20 @@ A strong project needs both working code and a clear explanation.
 ### Why it matters
 The project moved from in-memory retrieval to persistent vector storage. This makes repeated document querying faster and prepares the system for multi-document support.
 - I integrated ChromaDB as a persistent vector database and kept the embedding/retrieval pipeline provider-independent.
+
+
+## Day 21 - Document Registry and Multi-PDF Indexing
+
+### What I implemented
+- Added a JSON document registry.
+- Added document_id-based Chroma metadata filtering.
+- Added a PDF indexing service and CLI.
+
+### Key technical decisions
+- Used one Chroma collection with document_id metadata.
+- Stored uploaded PDFs outside Git tracking.
+- Used document_id filters to prevent cross-document retrieval.
+
+### Why it matters
+The project moved from a single-PDF flow to persistent multi-document indexing.
+- I added document registry and multi-PDF indexing support, making the financial RAG assistant closer to a usable document QA product.
