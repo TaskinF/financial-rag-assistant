@@ -125,7 +125,9 @@ class DocumentIndexingService:
             normalized_chunk["source_file"] = saved_pdf_path.name
             normalized_chunks.append(normalized_chunk)
 
-        self._get_vector_store().add_documents(normalized_chunks)
+        vector_store = self._get_vector_store()
+        vector_store.delete_by_document_id(resolved_document_id)
+        vector_store.add_documents(normalized_chunks)
 
         indexed_at = (
             datetime.now(timezone.utc)

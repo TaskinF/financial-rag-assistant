@@ -8,9 +8,16 @@ from app.services.document_indexing_service import DocumentIndexingService
 class FakeVectorStore:
     def __init__(self) -> None:
         self.added_chunks: list[dict] = []
+        self.deleted_document_ids: list[str] = []
+        self.events: list[tuple[str, object]] = []
+
+    def delete_by_document_id(self, document_id: str) -> None:
+        self.deleted_document_ids.append(document_id)
+        self.events.append(("delete", document_id))
 
     def add_documents(self, chunks: list[dict]) -> None:
         self.added_chunks = [dict(chunk) for chunk in chunks]
+        self.events.append(("add", len(chunks)))
 
 
 def build_service(tmp_path) -> DocumentIndexingService:
@@ -279,3 +286,53 @@ def test_get_document_returns_expected_record(tmp_path, monkeypatch):
 
     assert document is not None
     assert document["document_id"] == "doc_a"
+
+
+def test_reindex_deletes_existing_chunks_before_adding_new_chunks(tmp_path, monkeypatch):
+    service = build_service(tmp_path)
+    pdf_path = create_fake_pdf(tmp_path)
+    fake_store = FakeVectorStore()
+
+    monkeypatch.setattr(
+        "app.services.document_indexing_service.build_chunks_from_pdf",
+        lambda *args, **kwargs: sample_chunks(),
+    )
+    monkeypatch.setattr(service, "_get_vector_store", lambda: fake_store)
+
+    service.index_pdf(str(pdf_path), document_id="doc_a")
+
+    assert fake_store.deleted_document_ids == ["doc_a"]
+    assert [event[0] for event in fake_store.events] == ["delete", "add"]
+
+
+def test_reindex_updates_registry_without_creating_duplicate(tmp_path, monkeypatch):
+    service = build_service(tmp_path)
+    pdf_path = create_fake_pdf(tmp_path)
+    fake_store = FakeVectorStore()
+    chunks_by_call = [
+        sample_chunks(),
+        [
+            *sample_chunks(),
+            {
+                "text": "Second indexed chunk",
+                "source_file": "sample.pdf",
+                "page_number": 4,
+                "chunk_index": 0,
+                "chunk_id": "sample.pdf_p4_c0",
+            },
+        ],
+    ]
+
+    monkeypatch.setattr(
+        "app.services.document_indexing_service.build_chunks_from_pdf",
+        lambda *args, **kwargs: chunks_by_call.pop(0),
+    )
+    monkeypatch.setattr(service, "_get_vector_store", lambda: fake_store)
+
+    service.index_pdf(str(pdf_path), document_id="doc_a")
+    updated = service.index_pdf(str(pdf_path), document_id="doc_a")
+
+    documents = service.list_documents()
+    assert len(documents) == 1
+    assert updated["chunk_count"] == 2
+    assert documents[0]["chunk_count"] == 2

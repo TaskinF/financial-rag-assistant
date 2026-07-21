@@ -292,3 +292,32 @@ def test_similarity_search_without_metadata_filter_preserves_existing_behavior(t
 
     assert len(results) <= 3
     assert all("text" in result for result in results)
+
+
+def test_delete_by_document_id_removes_only_matching_documents(tmp_path):
+    store = build_store(tmp_path)
+    store.add_documents(build_multi_document_chunks())
+
+    store.delete_by_document_id("doc_a")
+
+    doc_a_results = store.similarity_search(
+        "financial performance",
+        top_k=5,
+        metadata_filter={"document_id": "doc_a"},
+    )
+    doc_b_results = store.similarity_search(
+        "financial performance",
+        top_k=5,
+        metadata_filter={"document_id": "doc_b"},
+    )
+
+    assert doc_a_results == []
+    assert doc_b_results
+    assert all(result["document_id"] == "doc_b" for result in doc_b_results)
+
+
+def test_delete_by_document_id_rejects_empty_document_id(tmp_path):
+    store = build_store(tmp_path)
+
+    with pytest.raises(ValueError):
+        store.delete_by_document_id("   ")

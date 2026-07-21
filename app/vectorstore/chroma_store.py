@@ -191,6 +191,15 @@ class ChromaVectorStore:
         """
         return int(self.collection.count())
 
+    def delete_by_document_id(self, document_id: str) -> None:
+        """Delete all chunks associated with a document identifier."""
+        if document_id is None or not str(document_id).strip():
+            raise ValueError("document_id cannot be empty")
+
+        self.collection.delete(
+            where={"document_id": str(document_id).strip()},
+        )
+
     def clear(self) -> None:
         """
         Remove all documents from the collection.
