@@ -66,6 +66,7 @@ class DocumentIndexingService:
         chunk_overlap: int = 200,
         start_page: int | None = None,
         end_page: int | None = None,
+        original_filename: str | None = None,
     ) -> dict:
         """
         Copy a PDF into the managed documents directory and index its chunks.
@@ -98,8 +99,16 @@ class DocumentIndexingService:
         if source_path.suffix.lower() != ".pdf":
             raise ValueError("pdf_path must point to a .pdf file")
 
+        display_filename = source_path.name
+        if original_filename is not None:
+            display_filename = Path(str(original_filename).strip()).name
+            if not display_filename:
+                raise ValueError("original_filename cannot be empty")
+            if Path(display_filename).suffix.lower() != ".pdf":
+                raise ValueError("original_filename must have a .pdf extension")
+
         if document_id is None:
-            resolved_document_id = create_document_id(source_path.name)
+            resolved_document_id = create_document_id(display_filename)
         else:
             resolved_document_id = str(document_id).strip()
             if not resolved_document_id:
@@ -138,7 +147,7 @@ class DocumentIndexingService:
 
         registry_record = {
             "document_id": resolved_document_id,
-            "filename": saved_pdf_path.name,
+            "filename": display_filename,
             "path": str(saved_pdf_path),
             "chunk_count": len(normalized_chunks),
             "collection_name": self.collection_name,

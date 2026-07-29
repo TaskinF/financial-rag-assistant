@@ -37,7 +37,10 @@ class FakeDocumentIndexingService:
         temporary_path = Path(kwargs["pdf_path"])
         self.temporary_file_existed_during_call = temporary_path.exists()
         self.index_calls.append(kwargs)
-        return document_record(kwargs.get("document_id") or "generated_doc")
+        record = document_record(kwargs.get("document_id") or "generated_doc")
+        if kwargs.get("original_filename"):
+            record["filename"] = kwargs["original_filename"]
+        return record
 
 
 class FakeRAGService:
@@ -117,7 +120,7 @@ def test_valid_pdf_upload_returns_document_metadata(client):
 
     assert response.status_code == 200
     assert response.json()["document_id"] == "doc_a"
-    assert response.json()["filename"] == "doc_a.pdf"
+    assert response.json()["filename"] == "report.pdf"
     assert response.json()["chunk_count"] == 2
 
 
@@ -179,6 +182,7 @@ def test_upload_passes_parameters_to_indexing_service(client):
     assert call["chunk_overlap"] == 100
     assert call["start_page"] == 2
     assert call["end_page"] == 5
+    assert call["original_filename"] == "report.pdf"
 
 
 def test_upload_removes_temporary_file_after_indexing(client):

@@ -96,6 +96,26 @@ def test_index_pdf_generates_document_id_when_not_provided(tmp_path, monkeypatch
     assert result["filename"] == f"{result['document_id']}.pdf"
 
 
+def test_index_pdf_uses_original_upload_filename_for_id_and_registry(tmp_path, monkeypatch):
+    service = build_service(tmp_path)
+    pdf_path = create_fake_pdf(tmp_path, name="temporary_upload.pdf")
+    fake_store = FakeVectorStore()
+
+    monkeypatch.setattr(
+        "app.services.document_indexing_service.build_chunks_from_pdf",
+        lambda *args, **kwargs: sample_chunks(),
+    )
+    monkeypatch.setattr(service, "_get_vector_store", lambda: fake_store)
+
+    result = service.index_pdf(
+        str(pdf_path),
+        original_filename="KPC_2026.06.pdf",
+    )
+
+    assert result["document_id"].startswith("kpc_2026_06_")
+    assert result["filename"] == "KPC_2026.06.pdf"
+
+
 def test_index_pdf_copies_pdf_into_documents_dir(tmp_path, monkeypatch):
     service = build_service(tmp_path)
     pdf_path = create_fake_pdf(tmp_path)

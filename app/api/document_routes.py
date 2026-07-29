@@ -50,7 +50,8 @@ def upload_document(
     if not file.filename:
         raise HTTPException(status_code=400, detail="PDF filename is required")
 
-    if Path(file.filename).suffix.lower() != ".pdf":
+    upload_filename = Path(file.filename).name
+    if Path(upload_filename).suffix.lower() != ".pdf":
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     if file.content_type and file.content_type.lower() != "application/pdf":
@@ -82,6 +83,7 @@ def upload_document(
             chunk_overlap=chunk_overlap,
             start_page=start_page,
             end_page=end_page,
+            original_filename=upload_filename,
         )
         return DocumentResponse(**record)
     except HTTPException:
