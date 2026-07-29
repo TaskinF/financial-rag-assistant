@@ -17,3 +17,24 @@
 ### Why it matters
 The assistant now supports an end-to-end multi-document API workflow.
 - I turned the RAG pipeline into a document product API with upload, persistent indexing, document selection and source-grounded question answering.
+
+---
+
+## Day 23 - Streamlit User Interface
+
+### What I implemented
+
+- Added a Streamlit interface for PDF upload and document selection.
+- Added document-specific question answering.
+- Displayed answers, sources and retrieval metadata.
+
+### Key technical decisions
+
+- Kept Streamlit as a thin client over FastAPI.
+- Reused the existing upload and document QA endpoints.
+- Kept indexing and LLM execution in the backend.
+
+### Why it matters
+
+The RAG system became a usable end-to-end document QA product.
+- I added a Streamlit frontend over the FastAPI-based multi-document RAG backend, enabling users to upload reports, select documents and view source-grounded answers.

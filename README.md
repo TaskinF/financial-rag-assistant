@@ -17,14 +17,15 @@ Local RAG assistant built for financial PDF documents. The project includes BGE-
 ## Architecture
 
 ```text
-PDF
--> Text Extraction
--> Cleaning & Chunking
--> BGE-M3 Embeddings
--> Vector Search
--> Focused Context
--> Ollama LLM
--> Answer + Sources
+Streamlit UI
+    ↓ HTTP
+FastAPI
+    ↓
+Document Registry + ChromaDB
+    ↓
+BGE-M3 Retrieval
+    ↓
+Ollama Answer Generation
 ```
 
 ## Installation
@@ -48,6 +49,41 @@ Swagger UI:
 ```text
 http://127.0.0.1:8000/docs
 ```
+
+## Streamlit UI
+
+Start the FastAPI backend:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+In a separate terminal, start the UI:
+
+```bash
+streamlit run ui/app.py
+```
+
+Open:
+
+```text
+http://localhost:8501
+```
+
+For local Ollama answers, make sure Ollama is running and pull the model:
+
+```bash
+ollama pull gemma3:4b
+```
+
+UI workflow:
+
+1. Upload a PDF.
+2. Select **Upload and Index**.
+3. Choose an indexed document.
+4. Enter a question.
+5. Select the Ollama or fake provider.
+6. Review the answer and source pages.
 
 ## CLI Usage
 
