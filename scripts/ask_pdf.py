@@ -12,6 +12,14 @@ from app.api.schemas import AskRequest
 from app.services.rag_service import RAGService
 
 
+def configure_console_encoding() -> None:
+    """Use UTF-8 for Turkish CLI output when the console supports it."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Ask a question to the Financial RAG assistant from the terminal."
@@ -71,6 +79,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    configure_console_encoding()
     args = parse_args()
 
     try:

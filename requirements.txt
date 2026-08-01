@@ -10,3 +10,4 @@ requests
 chromadb
 python-multipart
 streamlit
+protobuf>=5,<6

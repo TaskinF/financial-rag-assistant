@@ -1,5 +1,6 @@
 ﻿import argparse
 import json
+import sys
 from pathlib import Path
 
 from app.processing.ingestion import build_chunks_from_pdf
@@ -104,7 +105,16 @@ def load_eval_items(eval_path: Path) -> list[dict]:
         return json.load(file)
 
 
+def configure_console_encoding() -> None:
+    """Use UTF-8 for Turkish evaluation output when the console supports it."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")
+
+
 def main() -> None:
+    configure_console_encoding()
     args = parse_args()
 
     pdf_path = Path(args.pdf_path)

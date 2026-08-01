@@ -2,40 +2,40 @@
 
 ## Tests
 
-- [ ] Full pytest suite passes
-- [ ] Single-document retrieval evaluation passes
+- [x] Full pytest suite passes
+- [x] Single-document retrieval evaluation passes
 - [ ] Multi-document evaluation passes
-- [ ] FastAPI smoke test passes
-- [ ] Streamlit smoke test passes
-- [ ] Ollama answer generation works
+- [x] FastAPI smoke test passes
+- [x] Streamlit smoke test passes
+- [x] Ollama answer generation works
 
 ## Product Flow
 
-- [ ] PDF upload works
-- [ ] PDF is stored under document storage
-- [ ] Registry record is created
-- [ ] Chroma index is created
-- [ ] Multiple documents can be listed
-- [ ] Selected document can be queried
-- [ ] Sources belong only to the selected document
-- [ ] Re-indexing does not leave stale chunks
+- [x] PDF upload works
+- [x] PDF is stored under document storage
+- [x] Registry record is created
+- [x] Chroma index is created
+- [x] Multiple documents can be listed
+- [x] Selected document can be queried
+- [x] Sources belong only to the selected document
+- [x] Re-indexing does not leave stale chunks
 
 ## Repository Hygiene
 
-- [ ] `.env` is ignored
-- [ ] `.env.example` is committed
-- [ ] Uploaded PDFs are ignored
-- [ ] Chroma runtime files are ignored
-- [ ] Document registry runtime file is ignored
-- [ ] No secrets are committed
-- [ ] README commands are current
+- [x] `.env` is ignored
+- [x] `.env.example` is committed
+- [x] Uploaded PDFs are ignored
+- [x] Chroma runtime files are ignored
+- [x] Document registry runtime file is ignored
+- [x] No secrets are committed
+- [x] README commands are current
 
 ## Documentation
 
-- [ ] README is final
-- [ ] Product usage document exists
-- [ ] Limitations are documented
-- [ ] Verified evaluation metrics are documented
+- [x] README is final
+- [x] Product usage document exists
+- [x] Limitations are documented
+- [x] Verified evaluation metrics are documented
 
 ## Final Status
 
@@ -44,3 +44,7 @@ Project status: Ready for regular use and GitHub sharing.
 ```
 
 This status should be confirmed only after all critical checks are complete.
+
+Validation note: Core product checks passed on 2026-08-01. The dedicated
+multi-document evaluation script and dataset remain planned; document isolation
+is currently covered by automated metadata-filter tests and manual API checks.
