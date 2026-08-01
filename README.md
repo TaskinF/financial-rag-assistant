@@ -1,38 +1,64 @@
 # Financial Document RAG Assistant
 
-Local multi-document RAG assistant built for financial PDF reports. It combines BGE-M3 retrieval, persistent ChromaDB indexing, local Ollama answer generation, FastAPI, Streamlit, and retrieval evaluation utilities.
+## Overview
+
+Financial Document RAG Assistant is a local, multi-document RAG application for uploading and persistently indexing financial PDF reports. It uses BGE-M3 for multilingual semantic retrieval, ChromaDB for persistent vector storage, and Ollama for local LLM answer generation. The project includes a FastAPI backend, a Streamlit interface, and CLI tools. Every answer is returned with system-managed source file, page, and chunk metadata.
 
 ## Key Features
 
-- PDF ingestion with page-level metadata
-- Conservative financial text cleaning
-- BGE-M3 dense retrieval
-- Persistent ChromaDB vector storage
-- Document-specific retrieval with metadata filtering
-- Focused answer context
-- System-managed source metadata
+- PDF upload and persistent indexing
+- Multi-document registry
+- Document-specific Chroma retrieval
+- BGE-M3 multilingual embeddings
 - Local Ollama LLM support
-- FastAPI upload, document listing, and question-answering endpoints
-- Streamlit document QA interface
-- CLI demo
-- Retrieval evaluation with Precision@K, Recall@K, MRR, NDCG
+- Focused answer context
+- System-managed sources
+- FastAPI document API
+- Streamlit UI
+- CLI tools
+- Retrieval evaluation
+- Cross-document leakage checks
 
 ## Architecture
 
 ```text
-Streamlit UI
-    | HTTP
-    v
+Streamlit UI / CLI
+        ↓
 FastAPI
-    |
-    v
-Document Registry + ChromaDB
-    |
-    v
-BGE-M3 Retrieval
-    |
-    v
-Ollama Answer Generation
+        ↓
+Document Registry
+        ↓
+PDF Processing and Chunking
+        ↓
+BGE-M3 Embeddings
+        ↓
+Persistent ChromaDB
+        ↓
+document_id Filtered Retrieval
+        ↓
+Focused Context
+        ↓
+Ollama LLM
+        ↓
+Answer + System Sources
+```
+
+## Project Structure
+
+```text
+app/               Core backend application and orchestration
+  api/             FastAPI routes and request/response schemas
+  documents/       JSON-backed document registry
+  loaders/         PDF text extraction with page metadata
+  processing/      Text cleaning, chunking, and ingestion
+  rag/             Retrieval, context, prompts, and answer generation
+  services/        Document indexing and RAG service orchestration
+  vectorstore/     BGE-M3 embeddings, ChromaDB, and local vector utilities
+ui/                Streamlit frontend and FastAPI HTTP client
+scripts/           CLI, indexing, evaluation, and manual smoke tools
+eval/              Retrieval evaluation questions
+tests/             Unit, API, isolation, and UI smoke tests
+learning_notes/    Development notes and engineering decisions
 ```
 
 ## Installation
@@ -41,37 +67,41 @@ Ollama Answer Generation
 python -m venv venv
 ```
 
-Activate it on Windows:
+Windows:
 
 ```powershell
-.\venv\Scripts\Activate.ps1
+.\venv\Scripts\activate
 ```
 
 ```bash
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-## Run API
+## Ollama Setup
+
+Pull the default local model:
+
+```bash
+ollama pull gemma3:4b
+```
+
+The Ollama application must be running before using the Ollama provider.
+
+## Run the Backend
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Swagger UI:
+Swagger:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-## Streamlit UI
+## Run the Streamlit UI
 
-Start the FastAPI backend:
-
-```bash
-uvicorn app.main:app --reload
-```
-
-In a separate terminal, start the UI:
+In a separate terminal:
 
 ```bash
 streamlit run ui/app.py
@@ -83,42 +113,53 @@ Open:
 http://localhost:8501
 ```
 
-For local Ollama answers, make sure Ollama is running and pull the model:
-
-```bash
-ollama pull gemma3:4b
-```
-
-UI workflow:
+## Product Workflow
 
 1. Upload a PDF.
-2. Select **Upload and Index**.
-3. Choose an indexed document.
-4. Enter a question.
-5. Select the Ollama or fake provider.
-6. Review the answer and source pages.
+2. Index the document in ChromaDB.
+3. Select an indexed document.
+4. Ask a question.
+5. Review the answer and its source metadata.
 
-## Run Tests
+## API Endpoints
 
-```bash
-python -m pytest
-```
+- `GET /health`
+- `POST /ask`
+- `POST /documents/upload`
+- `GET /documents`
+- `POST /documents/{document_id}/ask`
 
 ## CLI Usage
 
+Index a document:
+
 ```bash
-python -m scripts.ask_pdf --question "Fonun yonetim ucreti nedir?" --llm-provider ollama --llm-model gemma3:4b
+python -m scripts.index_document --pdf-path data/raw/KPC_2026.05.pdf
+```
+
+List indexed documents:
+
+```bash
+python -m scripts.index_document --list-documents
+```
+
+Ask a question:
+
+```bash
+python -m scripts.ask_pdf --question "Fonun yönetim ücreti nedir?" --llm-provider ollama --llm-model gemma3:4b
 ```
 
 ## Evaluation
 
 PDF files are local runtime data and are not committed. Place the evaluation PDF under `data/raw/` before running the command.
 
+Single-document evaluation:
+
 ```bash
 python -m scripts.evaluate_rag --pdf-path data/raw/KPC_2026.05.pdf --eval-path eval/rag_eval_questions.json --start-page 1 --end-page 3 --top-k 3 --use-cache
 ```
 
-Example result:
+Verified result:
 
 ```text
 Pass rate: 100.00%
@@ -128,28 +169,40 @@ Average MRR@3: 1.0000
 Average NDCG@3: 0.9599
 ```
 
+Cross-document isolation is covered by automated `document_id` metadata-filter tests. A dedicated multi-document evaluation script and dataset are planned but are not included yet. The intended future command is:
+
+```bash
+python -m scripts.evaluate_multi_document_rag --eval-path eval/multi_document_eval.json --top-k 3 --relevance-mode strict
+```
+
+No multi-document leakage rate is reported because this evaluation has not been implemented and verified yet.
+
 ## Example Output
 
 ```text
-Question: Fonun yonetim ucreti nedir?
-Answer: Fonun yonetim ucreti 7.125.856,54 TL'dir.
-Source: KPC_2026.05.pdf, page 3
+Question:
+Fonun yönetim ücreti nedir?
+
+Answer:
+Fonun yönetim ücreti 7.125.856,54 TL'dir.
+
+Sources:
+- KPC_2026.05.pdf, page 3
 ```
 
-## Current Limitations
+## Main Engineering Decisions
 
-- PDF table extraction can be noisy
-- CPU-based BGE-M3 indexing can be slow for large PDFs
-- PDF indexing runs synchronously during the upload request
-- The JSON document registry targets local, single-process usage
-- Evaluation set is small
-- Not financial advice
+- BGE-M3 embeddings are supplied directly instead of using Chroma's default embedding model.
+- Document isolation is enforced with `document_id` metadata filters.
+- Only the most relevant chunks are included in the answer context.
+- Source metadata is generated by the system rather than the LLM.
+- Retrieval quality is evaluated independently from answer generation.
+- Streamlit is implemented as a thin HTTP client over FastAPI.
 
-## Next Steps
+## Limitations
 
-- Larger evaluation set
-- Background indexing jobs with progress reporting
-- Better table parsing and OCR support
-- Hybrid retrieval and reranking
-- Authentication and production observability
-- Agentic financial assistant
+- Table-heavy PDF extraction can still be noisy.
+- The evaluation dataset is currently small.
+- Local LLM answer quality depends on model capacity.
+- Authentication and multi-user support are not included.
+- The application is not financial advice.

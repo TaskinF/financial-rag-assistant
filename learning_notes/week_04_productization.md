@@ -38,3 +38,24 @@ The assistant now supports an end-to-end multi-document API workflow.
 
 The RAG system became a usable end-to-end document QA product.
 - I added a Streamlit frontend over the FastAPI-based multi-document RAG backend, enabling users to upload reports, select documents and view source-grounded answers.
+
+---
+
+## Day 24 - Final Documentation
+
+### What I implemented
+
+- Finalized the README and product workflow.
+- Added an end-to-end usage guide.
+- Added a final validation checklist.
+
+### Key technical decisions
+
+- Documented only implemented features and verified metrics.
+- Kept the usage flow independent from development details.
+- Included API, UI and CLI fallback paths.
+
+### Why it matters
+
+The project is now easier to install, use and maintain.
+- I finalized the multi-document RAG application with clear architecture, usage documentation and reproducible evaluation steps.
