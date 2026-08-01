@@ -4,6 +4,16 @@
 
 Financial Document RAG Assistant is a local, multi-document RAG application for uploading and persistently indexing financial PDF reports. It uses BGE-M3 for multilingual semantic retrieval, ChromaDB for persistent vector storage, and Ollama for local LLM answer generation. The project includes a FastAPI backend, a Streamlit interface, and CLI tools. Every answer is returned with system-managed source file, page, and chunk metadata.
 
+## Demo
+
+### PDF Upload and Indexing
+
+![Streamlit PDF upload and indexing](docs/images/financial-rag-asistant-pdf-upload.png)
+
+### Source-Grounded Question Answering
+
+![Streamlit source-grounded question answering](docs/images/financial-rag-asistant-ask-questions.png)
+
 ## Key Features
 
 - PDF upload and persistent indexing
