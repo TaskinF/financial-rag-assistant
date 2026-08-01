@@ -1,10 +1,10 @@
 import shutil
 import sys
-import tempfile
+from collections.abc import Iterator
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
-
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -13,11 +13,12 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 @pytest.fixture
-def tmp_path() -> Path:
-    temp_root = PROJECT_ROOT / "artifacts" / "pytest_tmp"
+def tmp_path() -> Iterator[Path]:
+    """Provide a workspace-local temporary directory on Windows."""
+    temp_root = PROJECT_ROOT / ".test-runtime"
     temp_root.mkdir(parents=True, exist_ok=True)
-
-    temp_dir = Path(tempfile.mkdtemp(dir=temp_root))
+    temp_dir = temp_root / uuid4().hex
+    temp_dir.mkdir()
 
     try:
         yield temp_dir

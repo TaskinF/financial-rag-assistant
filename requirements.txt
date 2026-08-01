@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 pytest
+httpx
 pydantic
 python-dotenv
 PyMuPDF

@@ -93,7 +93,7 @@ def test_index_pdf_generates_document_id_when_not_provided(tmp_path, monkeypatch
     result = service.index_pdf(str(pdf_path))
 
     assert result["document_id"]
-    assert result["filename"] == f"{result['document_id']}.pdf"
+    assert result["filename"] == "KPC_2026.05.pdf"
 
 
 def test_index_pdf_uses_original_upload_filename_for_id_and_registry(tmp_path, monkeypatch):
@@ -198,7 +198,7 @@ def test_index_pdf_creates_registry_record_with_required_fields(tmp_path, monkey
     result = service.index_pdf(str(pdf_path), document_id="doc_a")
 
     assert result["document_id"] == "doc_a"
-    assert result["filename"] == "doc_a.pdf"
+    assert result["filename"] == "sample.pdf"
     assert result["chunk_count"] == 1
     assert result["collection_name"] == "financial_documents"
     assert result["status"] == "indexed"

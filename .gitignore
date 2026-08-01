@@ -1,9 +1,13 @@
 .venv/
+venv/
 __pycache__/
 .pytest_cache/
+.pytest-tmp/
+.test-runtime/
 .env
 *.pyc
-data/raw/*.pdf
+data/raw/**
+!data/raw/.gitkeep
 data/documents/**
 !data/documents/.gitkeep
 artifacts/document_registry.json
