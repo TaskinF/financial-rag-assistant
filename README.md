@@ -1,16 +1,19 @@
 # Financial Document RAG Assistant
 
-Local RAG assistant built for financial PDF documents. The project includes BGE-M3 retrieval, local Ollama-based answer generation, a FastAPI API, a CLI demo, and retrieval evaluation utilities.
+Local multi-document RAG assistant built for financial PDF reports. It combines BGE-M3 retrieval, persistent ChromaDB indexing, local Ollama answer generation, FastAPI, Streamlit, and retrieval evaluation utilities.
 
 ## Key Features
 
 - PDF ingestion with page-level metadata
 - Conservative financial text cleaning
 - BGE-M3 dense retrieval
-- Embedding cache
+- Persistent ChromaDB vector storage
+- Document-specific retrieval with metadata filtering
 - Focused answer context
+- System-managed source metadata
 - Local Ollama LLM support
-- FastAPI `/ask` endpoint
+- FastAPI upload, document listing, and question-answering endpoints
+- Streamlit document QA interface
 - CLI demo
 - Retrieval evaluation with Precision@K, Recall@K, MRR, NDCG
 
@@ -18,13 +21,17 @@ Local RAG assistant built for financial PDF documents. The project includes BGE-
 
 ```text
 Streamlit UI
-    ↓ HTTP
+    | HTTP
+    v
 FastAPI
-    ↓
+    |
+    v
 Document Registry + ChromaDB
-    ↓
+    |
+    v
 BGE-M3 Retrieval
-    ↓
+    |
+    v
 Ollama Answer Generation
 ```
 
@@ -34,8 +41,14 @@ Ollama Answer Generation
 python -m venv venv
 ```
 
+Activate it on Windows:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ## Run API
@@ -85,6 +98,12 @@ UI workflow:
 5. Select the Ollama or fake provider.
 6. Review the answer and source pages.
 
+## Run Tests
+
+```bash
+python -m pytest
+```
+
 ## CLI Usage
 
 ```bash
@@ -92,6 +111,8 @@ python -m scripts.ask_pdf --question "Fonun yonetim ucreti nedir?" --llm-provide
 ```
 
 ## Evaluation
+
+PDF files are local runtime data and are not committed. Place the evaluation PDF under `data/raw/` before running the command.
 
 ```bash
 python -m scripts.evaluate_rag --pdf-path data/raw/KPC_2026.05.pdf --eval-path eval/rag_eval_questions.json --start-page 1 --end-page 3 --top-k 3 --use-cache
@@ -118,13 +139,17 @@ Source: KPC_2026.05.pdf, page 3
 ## Current Limitations
 
 - PDF table extraction can be noisy
-- In-memory vector store is for local development
+- CPU-based BGE-M3 indexing can be slow for large PDFs
+- PDF indexing runs synchronously during the upload request
+- The JSON document registry targets local, single-process usage
 - Evaluation set is small
 - Not financial advice
 
 ## Next Steps
 
 - Larger evaluation set
-- Persistent vector store
-- Better table parsing
+- Background indexing jobs with progress reporting
+- Better table parsing and OCR support
+- Hybrid retrieval and reranking
+- Authentication and production observability
 - Agentic financial assistant

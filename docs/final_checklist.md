@@ -2,20 +2,24 @@
 
 ## Code Quality
 
-- [ ] pytest passes
-- [ ] No secrets committed
-- [ ] .env is ignored
-- [ ] .env.example is committed
-- [ ] data/raw PDFs are ignored or intentionally excluded
-- [ ] artifacts/embedding_cache files are ignored
+- [x] pytest passes (`226 passed`)
+- [x] No secrets committed
+- [x] `.env` is ignored
+- [x] `.env.example` is committed
+- [x] Local PDFs under `data/raw` and `data/documents` are ignored
+- [x] Embedding cache and Chroma runtime files are ignored
+- [x] Pytest only collects tests from `tests/`
 
 ## Functional Checks
 
 - [ ] CLI works with fake provider
 - [ ] CLI works with Ollama provider
-- [ ] FastAPI /health works
-- [ ] FastAPI /ask works with fake provider
+- [x] FastAPI `/health` is covered by an API test
+- [x] FastAPI `/ask` works with fake provider in automated tests
 - [ ] FastAPI /ask works with Ollama provider
+- [x] Document upload, listing, and document QA routes pass automated tests
+- [x] Streamlit module and API client pass smoke tests
+- [ ] Streamlit end-to-end flow works with Ollama
 - [ ] Retrieval evaluation script runs
 - [ ] Evaluation metrics are reported
 
@@ -45,6 +49,12 @@ python -m scripts.ask_pdf --question "Fonun yonetim ucreti nedir?" --llm-provide
 uvicorn app.main:app --reload
 ```
 
+`streamlit`
+
+```bash
+streamlit run ui/app.py
+```
+
 `/ask` request sample
 
 ```powershell
@@ -68,4 +78,4 @@ Invoke-RestMethod `
 
 ## Final Status
 
-Final project status: Ready for GitHub / interview demo.
+Final project status: Code-complete. Manual Ollama, CLI, and evaluation demo checks remain.
